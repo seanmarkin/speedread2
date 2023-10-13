@@ -2,45 +2,36 @@ import streamlit as st
 import time
 
 def display_word(word):
-    # Split the word to highlight the middle character
     stop = len(word) // 2
     left = word[:stop]
     mid = word[stop]
     right = word[stop+1:]
-
-    # Return the word with the middle character highlighted in red using HTML
     return f"{left}<span style='color:red'>{mid}</span>{right}"
 
 def main():
     st.title("Speed Reading App")
 
-    # Input for WPM with error handling
-    try:
-        wpm = st.number_input("Words Per Minute (WPM)", min_value=50, value=300, step=50)
-        interval = 60.0 / wpm
-    except ValueError:
-        st.error("Please enter a valid number for WPM!")
-        return
+    wpm = st.number_input("Words Per Minute (WPM)", min_value=50, value=300, step=50)
+    interval = 60.0 / wpm
 
-    # Textarea for text input
     text = st.text_area("Paste your text here:", height=10)
 
-    # Error handling for empty text
-    if not text.strip():
-        st.warning("Please provide some text to read!")
-        return
+    if 'words' not in st.session_state:
+        st.session_state.words = text.split()
+        st.session_state.current_word_index = 0
 
-    words = text.split()
-
-    # Start, Pause, Resume buttons
     if st.button("Start Reading"):
-        for word in words:
-            # Display word with middle character highlighted
-            st.markdown(display_word(word), unsafe_allow_html=True)
-            time.sleep(interval)
+        st.session_state.words = text.split()
+        st.session_state.current_word_index = 0
+        st.session_state.start_time = time.time()
 
-    # Note: Streamlit currently doesn't support "Pause" and "Resume" natively in the same way a typical GUI or web app would.
-    # This is a basic implementation and the reading will start over when pressing "Start Reading" again.
+    if 'start_time' in st.session_state:
+        elapsed_time = time.time() - st.session_state.start_time
+        word_count_to_display = int(elapsed_time // interval)
+
+        if word_count_to_display <= len(st.session_state.words):
+            word_to_display = st.session_state.words[word_count_to_display]
+            st.markdown(display_word(word_to_display), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
