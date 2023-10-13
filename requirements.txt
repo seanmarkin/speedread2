@@ -5,5 +5,4 @@ streamlit
 openai
 langchain
 pygame
-tkinter
 Flet
